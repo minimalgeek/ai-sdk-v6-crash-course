@@ -1,5 +1,5 @@
 import { google } from '@ai-sdk/google';
-import { streamText } from 'ai';
+import { Output, streamText } from 'ai';
 import z from 'zod';
 
 const model = google('gemini-2.5-flash');
@@ -8,23 +8,25 @@ const stream = streamText({
   model,
   prompt:
     'Give me the first paragraph of a story about an imaginary planet.',
+  output: Output.object({
+    schema: z.object({
+      facts: z
+        .array(z.string())
+        .describe(
+          'The facts about the imaginary planet. Write as if you are a scientist.',
+        ),
+    }),
+    description:
+      'The facts about the imaginary planet. Write as if you are a scientist.',
+  }),
 });
 
 for await (const chunk of stream.textStream) {
   process.stdout.write(chunk);
 }
 
-const finalText = await stream.text;
 
-// TODO: Replace this with a call to generateText, passing:
-// - The model, same as above
-// - The prompt, asking for facts about the imaginary planet,
-//   passing in the finalText as the story
-// - The output, which should be Output.object({}), passing
-//   the schema: z.object({
-//     facts: z.array(z.string()).describe('The facts about the imaginary planet. Write as if you are a scientist.'),
-//   })
-const factsResult = TODO;
+const factsResult = stream.output;
 
 // TODO: Log the output of the result
-console.log(factsResult.output);
+console.log(await factsResult);

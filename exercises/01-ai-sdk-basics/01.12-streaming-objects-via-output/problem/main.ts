@@ -4,24 +4,24 @@ import z from 'zod';
 
 const model = google('gemini-2.5-flash');
 
-const stream = streamText({
-  model,
-  prompt:
-    'Give me the first paragraph of a story about an imaginary planet.',
-});
+// const stream = streamText({
+//   model,
+//   prompt:
+//     'Give me the first paragraph of a story about an imaginary planet.',
+// });
 
-for await (const chunk of stream.textStream) {
-  process.stdout.write(chunk);
-}
+// for await (const chunk of stream.textStream) {
+//   process.stdout.write(chunk);
+// }
 
-const finalText = await stream.text;
+// const finalText = await stream.text;
 
 // TODO: Replace generateText with streamText, keeping the same
 // Output.object with the facts schema from 01.10
 // Then use partialOutputStream to iterate over streaming chunks
-const factsResult = await generateText({
+const factsResult = await streamText({
   model,
-  prompt: `Give me some facts about the imaginary planet. Here's the story: ${finalText}`,
+  prompt: `Give me some facts about an imaginary planet.`,
   output: Output.object({
     schema: z.object({
       facts: z
@@ -33,6 +33,6 @@ const factsResult = await generateText({
   }),
 });
 
-// TODO: Replace this with a for-await loop over factsResult.partialOutputStream
-// Log each partial object as it arrives
-console.log(factsResult.output);
+for await (const chunk of factsResult.partialOutputStream) {
+  console.log(chunk);
+}
